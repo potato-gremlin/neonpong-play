@@ -1,0 +1,130 @@
+<title>Neon Pong</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07060f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<div id="app">
+
+  <section class="screen active" id="scr-title">
+    <div class="logo"><span class="neon">NEON</span><br><span class="neon pong">PONG</span></div>
+    <div class="tag">MOBILE · VS CPU · First to 21 · Upgrades · Unlockables</div>
+    <div class="press">TAP TO START</div>
+  </section>
+
+  <section class="screen" id="scr-menu">
+    <div class="menu-logo">NEON PONG</div>
+    <div class="wallet-badge">🪙 <span id="menu-coins">0</span></div>
+    <div class="menu-list">
+      <button class="btn solid" data-go="setup">▶ PLAY VS CPU</button>
+      <button class="btn" data-go="cos">🎨 COSMETICS</button>
+      <button class="btn" data-go="help">📖 HOW TO PLAY</button>
+      <button class="btn ghost" data-go="settings">⚙ SETTINGS</button>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-setup">
+    <div class="hdr"><h1 class="cyan">MATCH SETUP</h1><span class="spacer"></span><button class="btn small ghost" data-go="menu">BACK</button></div>
+    <div class="setup-grid">
+      <div class="panel">
+        <div class="sub">FIRST TO</div>
+        <div class="chips" id="points-chips"></div>
+      </div>
+      <div class="panel">
+        <div class="sub">CPU DIFFICULTY</div>
+        <div class="chips" id="cpu-chips"></div>
+      </div>
+      <div class="panel">
+        <div class="sub">UPGRADES</div>
+        <div class="chips" id="upgrades-chip"></div>
+      </div>
+      <div class="panel">
+        <div class="sub">BALL — <span id="ball-name"></span></div>
+        <div class="cos-grid" id="ball-grid"></div>
+      </div>
+      <div class="panel">
+        <div class="sub">BOARD — <span id="board-name"></span></div>
+        <div class="cos-grid" id="board-grid"></div>
+      </div>
+      <button class="btn solid" id="start-match" style="padding:18px;font-size:16px;">START MATCH ▶</button>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-cos">
+    <div class="hdr"><h1 class="pink">COSMETICS</h1><span class="spacer"></span><div class="wallet-badge">🪙 <span id="cos-coins">0</span></div><button class="btn small ghost" data-go="menu">BACK</button></div>
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="sub" id="cat-desc"></div>
+    <div class="cos-grid" id="cos-grid"></div>
+    <div class="panel" style="margin-top:auto;">
+      <div class="sub">CHEAT CODE</div>
+      <div class="row"><input id="cheat-input" placeholder="TYPE CODE" style="flex:1;background:#ffffff10;border:1px solid #ffffff30;border-radius:8px;padding:10px;color:#fff;font-family:inherit;" autocapitalize="characters"><button class="btn small" id="cheat-go">GO</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-help">
+    <div class="hdr"><h1 class="cyan">HOW TO PLAY</h1><span class="spacer"></span><button class="btn small ghost" data-go="menu">BACK</button></div>
+    <div class="col" id="help-body" style="padding-bottom:20px;"></div>
+  </section>
+
+  <section class="screen" id="scr-settings">
+    <div class="hdr"><h1 class="cyan">SETTINGS</h1><span class="spacer"></span><button class="btn small ghost" data-go="menu">BACK</button></div>
+    <div class="col" id="settings-body"></div>
+  </section>
+
+  <section class="screen" id="scr-match">
+    <div id="court-wrap">
+      <canvas id="court"></canvas>
+      <button class="pause-btn" id="pause-btn">⏸</button>
+      <div class="banner" id="banner">MATCH POINT</div>
+      <div class="abilities" id="abilities"></div>
+      <div class="rotate-hint" id="rotate-hint"><div class="icon">📱↻</div><div>Rotate your phone sideways<br>to play</div></div>
+
+      <div class="break-panel" id="break-panel">
+        <div class="break-hdr">
+          <div class="up-badge">YOU: <span id="break-up">0</span> UP</div>
+          <span class="spacer"></span>
+          <div class="break-timer" id="break-timer">15</div>
+        </div>
+        <div class="break-tiers" id="break-tiers"></div>
+        <div class="break-foot">
+          <button class="ready-btn" id="ready-btn">READY</button>
+        </div>
+      </div>
+
+      <div class="pause-panel" id="pause-panel">
+        <div class="pause-box">
+          <button class="btn solid" id="resume-btn">RESUME</button>
+          <button class="btn" data-go="setup" id="restart-btn">RESTART MATCH</button>
+          <button class="btn ghost" data-go="menu" id="quit-btn">QUIT TO MENU</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-over">
+    <div class="w" id="over-winner">YOU WIN</div>
+    <div id="over-score" style="opacity:.7;font-size:13px;"></div>
+    <div class="coins-grid panel" id="over-coins"></div>
+    <div class="row">
+      <button class="btn solid" data-go="setup">REMATCH</button>
+      <button class="btn pink" data-go="cos">COSMETICS</button>
+      <button class="btn ghost" data-go="menu">MENU</button>
+    </div>
+  </section>
+
+  <div id="toast"></div>
+</div>
+
+<audio id="au-title" loop preload="none"></audio>
+<audio id="au-gameplay" loop preload="none"></audio>
+<audio id="au-gameover" loop preload="none"></audio>
+<audio id="au-miss" preload="none"></audio>
+
+<script src="catalog.js"></script>
+<script src="render.js"></script>
+<script src="sim.js"></script>
+<script src="save.js"></script>
+<script src="app.js"></script>
