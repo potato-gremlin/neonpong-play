@@ -1,5 +1,5 @@
 node_modules/
-www/
-ios/
-build/
+/www/
+/ios/
+/build/
 .DS_Store
