@@ -1,0 +1,12 @@
+{
+  "appId": "com.potatogremlin.neonpong",
+  "appName": "Neon Pong",
+  "webDir": "www",
+  "backgroundColor": "#07060f",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#07060f",
+    "allowsLinkPreview": false
+  }
+}

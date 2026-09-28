@@ -43,7 +43,14 @@
     title: document.getElementById('au-title'), gameplay: document.getElementById('au-gameplay'),
     gameover: document.getElementById('au-gameover'), miss: document.getElementById('au-miss'),
   };
-  AU.title.src = 'audio/title.ogg'; AU.gameplay.src = 'audio/gameplay.ogg'; AU.gameover.src = 'audio/gameover.ogg'; AU.miss.src = 'audio/miss.ogg';
+  // Format pick: the iPhone app bundles lossless WAVs (perfect loops, size doesn't matter offline);
+  // browsers get OGG where supported, AAC (.m4a) otherwise (older iPhone Safari).
+  const AUDIO = (() => {
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return { dir: 'audio/hq/', ext: 'wav' };
+    const probe = document.createElement('audio');
+    return probe.canPlayType('audio/ogg; codecs="vorbis"') ? { dir: 'audio/', ext: 'ogg' } : { dir: 'audio/', ext: 'm4a' };
+  })();
+  ['title', 'gameplay', 'gameover', 'miss'].forEach((k) => { AU[k].src = AUDIO.dir + k + '.' + AUDIO.ext; });
   let curTrack = null;
   function applyVolumes() { const m = save.settings.muted ? 0 : save.settings.music / 100; [AU.title, AU.gameplay, AU.gameover].forEach((a) => { a.volume = m; }); AU.miss.volume = save.settings.muted ? 0 : save.settings.sfx / 100; }
   function playMusic(which) {
