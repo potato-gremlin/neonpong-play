@@ -79,19 +79,18 @@
       ctx.translate(W / 2, H / 2);
       const skin = item.cat === 'paddle' ? item.id : (opts && opts.pairedPaddle) || 'p_classic';
       const glowId = item.cat === 'glow' ? item.id : (opts && opts.pairedGlow) || 'o_none';
-      NP.drawPaddle(ctx, skin, glowId, 16, 78, t, {});
+      NP.drawPaddle(ctx, skin, glowId, 16, 78, t, { calm: save.settings.reduceFlashing, hitAge: t % 2 });
     } else if (item.cat === 'aura') {
       ctx.translate(W / 2, H / 2);
-      NP.drawPaddle(ctx, 'p_classic', 'o_none', 16, 60, t, {});
-      drawAura(ctx, item.id, 0, 0, 60, t);
+      NP.drawPaddle(ctx, 'p_classic', (opts && opts.pairedGlow) || 'o_none', 16, 60, t, { aura: item.id, hitAge: t % 2, calm: save.settings.reduceFlashing });
     } else if (item.cat === 'trail') {
       const hist = []; for (let i = 0; i < 14; i++) hist.push({ x: 16 + i * 7, y: 64 + Math.sin(i * 0.5) * 14 });
       previewTrailState[item.id] = previewTrailState[item.id] || {};
-      NP.drawTrail(ctx, item.id, hist, t, previewTrailState[item.id], NP.colors.cyan, 6);
+      NP.drawTrail(ctx, item.id, hist, t, previewTrailState[item.id], NP.glowColorAt((opts && opts.pairedGlow) || 'o_cyan', t), 6);
       ctx.save(); ctx.translate(hist[hist.length - 1].x, hist[hist.length - 1].y); NP.drawBall(ctx, 'circle', 7, t); ctx.restore();
     } else if (item.cat === 'goalfx') {
       previewGoalState[item.id] = previewGoalState[item.id] || { cyc: -1 };
-      NP.drawGoalFx(ctx, item.id, W, H, t, previewGoalState[item.id], NP.colors.cyan);
+      NP.drawGoalFx(ctx, item.id, W, H, t, previewGoalState[item.id], NP.glowColorAt((opts && opts.pairedGlow) || 'o_cyan', t));
     } else if (item.cat === 'hud') {
       ctx.translate(0, 0); NP.drawScore(ctx, item.id, '7', W / 2, H / 2, 30, t, NP.colors.cyan, 'center');
     } else if (item.cat === 'board') {
@@ -101,17 +100,6 @@
     ctx.restore();
   }
   const previewTrailState = {}, previewGoalState = {}, previewBoardState = {};
-  function drawAura(ctx, id, x, y, h, t) {
-    if (id === 'a_none') return;
-    const n = 5, col = NP.colors.pink;
-    ctx.save(); ctx.translate(x, y);
-    for (let i = 0; i < n; i++) {
-      const a = t * 1.4 + (i / n) * Math.PI * 2, r = h * 0.55;
-      const px = Math.cos(a) * r * 0.5, py = Math.sin(a) * r;
-      ctx.beginPath(); ctx.arc(px, py, 3.2, 0, Math.PI * 2); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8; ctx.fill();
-    }
-    ctx.restore(); ctx.shadowBlur = 0;
-  }
   // animate all currently-visible preview canvases
   let previewAnimT = 0, previewList = [];
   function tickPreviews(dt) {
@@ -153,7 +141,7 @@
   }
 
   function startMatch() {
-    const rules = { points: save.lastSetup.points, winBy2: cat.winByTwo, upgrades: save.lastSetup.upgrades, resetUpOnConcede: save.lastSetup.resetUpOnConcede, underdogComeback: save.lastSetup.underdogComeback, underdogDiscount: save.lastSetup.underdogDiscount, breakTimerOn: save.lastSetup.breakTimerOn, breakTimerSec: save.lastSetup.breakTimerSec };
+    const rules = { points: save.lastSetup.points, upgrades: save.lastSetup.upgrades, resetUpOnConcede: save.lastSetup.resetUpOnConcede, underdogComeback: save.lastSetup.underdogComeback, underdogDiscount: save.lastSetup.underdogDiscount, breakTimerOn: save.lastSetup.breakTimerOn, breakTimerSec: save.lastSetup.breakTimerSec };
     game.start(cat, rules);
     const lv = CPU_LEVELS[pendingCpuLevel];
     cpu.reaction = lv.reaction; cpu.error = lv.error; cpu.timer = 0; cpu.seenHits = -1; cpu.rng = (Math.random() * 4294967295) >>> 0;
@@ -210,10 +198,10 @@
     const body = document.getElementById('help-body'); if (body.childElementCount) return;
     const secs = [
       ['CONTROLS', 'Drag anywhere on the court to move your paddle up/down. Tap the ability buttons (bottom-right) for Dash, Mod, Ultimate and Legendary once you\'ve bought them.'],
-      ['MATCH RULES', 'First to your chosen target (11/21/31), no win-by-2. A MATCH POINT banner shows one point before the target. Play pauses after every point for a 15s Upgrade Break.'],
+      ['MATCH RULES', 'First to your chosen target (11/21/31); reaching it wins immediately. A MATCH POINT banner shows one point before the target. Play pauses after every point for a 15s Upgrade Break.'],
       ['UP — UPGRADE POINTS', 'Score a point, earn 1 UP. If the CPU scores, your unspent UP resets to 0 (upgrades already bought stay). Trailing by 4+ and conceding keeps your UP and gives +1 bonus. Trailing by 5+ discounts Tier 2/3 upgrades by 1 (min 1).'],
-      ['UPGRADES', 'Tier 1 Tune-Ups (1 UP, stack): Long Paddle, Quick Hands, Heavy Hitter, Grip Tape, Dash, Tracer, Steady Serve. Tier 2 Mods (2 UP, one active Mod slot): Titan Paddle, Overdrive, Curveball, Mirage, Bullet Time, Magnet. Tier 3 Ultimates (3 UP, one active Ultimate slot): Twin Paddle, Guardian Drone, Barrage, Cryo Beam, Black Hole, Supernova Smash, Shrink Ray. Tier 4 Legendary (5 UP, one at a time): Snare, Second Wind, Shield Wall.'],
-      ['COINS & COSMETICS', '+25 for a win, +10 for a loss, +1 per point, +10 per 15+ hit rally (up to 5 bonus/match). 114 cosmetics across 8 categories. Type NEONRICH on the Cosmetics screen for +5000 coins.'],
+      ['UPGRADES', 'One active ability per tier: buying an active replaces the one you hold in that tier. Passives are unlimited. Tier 1 Tune-Ups (1 UP, stack): Long Paddle, Quick Hands, Heavy Hitter, Grip Tape, Dash (the active), Steady Serve. Tier 2 Mods (2 UP): Titan Paddle, Overdrive, Curveball, plus one active: Mirage, Bullet Time or Magnet. Tier 3 Ultimates (3 UP): Twin Paddle, Guardian Drone, plus one active: Cryo Beam, Black Hole, Supernova Smash or Shrink Ray. Tier 4 Legendary (5 UP): Shield Wall, plus one active: Snare, Second Wind or Barrage. Timed abilities have a 30s cooldown (Dash 4s). Second Wind works once per round and refreshes whenever a point is awarded.'],
+      ['COINS & COSMETICS', '+50 for a win, +10 for a loss, +2 per point, +10 per 15+ hit rally (up to 5 bonus/match). 114 cosmetics across 8 categories. Type NEONRICH on the Cosmetics screen for +5000 coins.'],
     ];
     for (const [h, t] of secs) { const p = document.createElement('div'); p.className = 'panel'; p.innerHTML = '<div class="sub" style="color:var(--cyan);font-weight:700;">' + h + '</div><div style="font-size:12.5px;line-height:1.5;opacity:.85;">' + t + '</div>'; body.appendChild(p); }
   }
@@ -360,7 +348,7 @@
   function showGameOver() {
     const won = game.winner === 0;
     const w = document.getElementById('over-winner'); w.textContent = won ? 'YOU WIN' : 'CPU WINS'; w.style.color = won ? 'var(--lime)' : 'var(--red)';
-    document.getElementById('over-score').textContent = game.p[0].score + ' – ' + game.p[1].score;
+    { const sec = Math.floor(game.matchMs / 1000), mm = String(Math.floor(sec / 60)).padStart(2, '0'), ss = String(sec % 60).padStart(2, '0'); document.getElementById('over-score').textContent = game.p[0].score + ' – ' + game.p[1].score + '  ·  ' + mm + ':' + ss; }
     const c = game.coins(0);
     const grid = document.getElementById('over-coins'); grid.innerHTML = '';
     const row = (k, v) => { const a = document.createElement('div'); a.className = 'k'; a.textContent = k; const b = document.createElement('div'); b.className = 'v'; b.textContent = '+' + v; grid.appendChild(a); grid.appendChild(b); };
@@ -417,7 +405,7 @@
 
     if (game.phase === 'Goal') {
       const id = game.ev.scorer === 0 ? save.player.equip.goalfx : 'g_flash';
-      const col = game.ev.scorer === 0 ? '#' + save.player.color.toString(16).padStart(6, '0') : NP.colors.red;
+      const col = game.ev.scorer === 0 ? NP.glowColorAt(save.player.equip.glow, matchClockT) : NP.colors.red;
       NP.drawGoalFx(ctx, id, PONG.CW, PONG.CH, matchClockT - goalStartT, goalState, col);
       ctx.restore();
       return;
@@ -434,7 +422,7 @@
       ballHist[i].push({ x: b.x, y: b.y }); if (ballHist[i].length > 18) ballHist[i].shift();
       if (b.owner === 0 && save.player.equip.trail && save.player.equip.trail !== 't_none') {
         trailStates[i] = trailStates[i] || {};
-        NP.drawTrail(ctx, save.player.equip.trail, ballHist[i], matchClockT, trailStates[i], '#' + save.player.color.toString(16).padStart(6, '0'), PONG.BallR * 0.7);
+        NP.drawTrail(ctx, save.player.equip.trail, ballHist[i], matchClockT, trailStates[i], NP.glowColorAt(save.player.equip.glow, matchClockT), PONG.BallR * 0.7);
       }
     }
 
@@ -450,6 +438,7 @@
       if (!b.active) continue;
       const spd = Math.hypot(b.vx, b.vy) / game.ballCap(true);
       ctx.save(); ctx.translate(b.x, b.y);
+      if (NP.boardIsLight(save.lastSetup.board)) NP.drawBallShadow(ctx, PONG.BallR);
       NP.drawBall(ctx, save.lastSetup.ball, PONG.BallR, matchClockT, { speed: spd, spin: matchClockT * 2 + b.x * 0.02 });
       ctx.restore();
     }
@@ -461,15 +450,15 @@
   function drawPaddleSet(i, skin, glowId) {
     const q = game.p[i], half = game.len(i) / 2, x = i === 0 ? PONG.FaceL : PONG.FaceR;
     ctx.save(); ctx.translate(x, q.y);
-    NP.drawPaddle(ctx, skin, glowId, 14, game.len(i), matchClockT, { hitAge: matchClockT - lastHitT[i] });
+    const po = { hitAge: matchClockT - lastHitT[i], bpm: 168, calm: save.settings.reduceFlashing, lightBoard: NP.boardIsLight(save.lastSetup.board) };
+    NP.drawPaddle(ctx, skin, glowId, 14, game.len(i), matchClockT, i === 0 ? Object.assign({ aura: save.player.equip.aura }, po) : po);
     ctx.restore();
-    if (i === 0 && save.player.equip.aura && save.player.equip.aura !== 'a_none') { ctx.save(); ctx.translate(x, q.y); drawAura(ctx, save.player.equip.aura, 0, 0, game.len(i), matchClockT); ctx.restore(); }
-    if (q.lvl[U.Twin]) { ctx.save(); ctx.translate(game.twinX(i), q.twinY); NP.drawPaddle(ctx, skin, 'o_none', 10, game.twinLen(i), matchClockT, {}); ctx.restore(); }
-    if (q.lvl[U.Guardian]) { ctx.save(); ctx.translate(game.droneX(i), q.droneY); NP.drawPaddle(ctx, skin, 'o_none', 8, game.droneLen(i), matchClockT, {}); ctx.restore(); }
+    if (q.lvl[U.Twin]) { ctx.save(); ctx.translate(game.twinX(i), q.twinY); NP.drawPaddle(ctx, skin, glowId, 10, game.twinLen(i), matchClockT, { calm: po.calm, lightBoard: po.lightBoard }); ctx.restore(); }
+    if (q.lvl[U.Guardian]) { ctx.save(); ctx.translate(game.droneX(i), q.droneY); NP.drawPaddle(ctx, skin, glowId, 8, game.droneLen(i), matchClockT, { calm: po.calm, lightBoard: po.lightBoard }); ctx.restore(); }
     if (q.shield) { ctx.save(); const bx = i === 0 ? PONG.BallR : PONG.CW - PONG.BallR; ctx.strokeStyle = 'rgba(120,220,255,0.8)'; ctx.shadowColor = NP.colors.cyan; ctx.shadowBlur = 14; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bx, PONG.WallTop); ctx.lineTo(bx, PONG.WallBot); ctx.stroke(); ctx.restore(); }
   }
   function drawHud() {
-    NP.drawScore(ctx, save.player.equip.hud, game.p[0].score, PONG.CW * 0.32, 44, 30, matchClockT, '#' + save.player.color.toString(16).padStart(6, '0'), 'center');
+    NP.drawScore(ctx, save.player.equip.hud, game.p[0].score, PONG.CW * 0.32, 44, 30, matchClockT, NP.glowColorAt(save.player.equip.glow, matchClockT), 'center');
     NP.drawScore(ctx, CPU_HUD, game.p[1].score, PONG.CW * 0.68, 44, 30, matchClockT, NP.colors.pink, 'center');
     if (game.rules.upgrades) { ctx.save(); ctx.font = '13px "Chakra Petch", sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.textAlign = 'center'; ctx.fillText('UP ' + game.p[0].up, PONG.CW * 0.32, 68); ctx.fillText('UP ' + game.p[1].up, PONG.CW * 0.68, 68); ctx.restore(); }
     if (game.serve > 0 && game.phase === 'Playing') { ctx.save(); ctx.font = '11px "Chakra Petch", sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.textAlign = 'center'; ctx.fillText('serving…', PONG.CW / 2, PONG.CH - 16); ctx.restore(); }

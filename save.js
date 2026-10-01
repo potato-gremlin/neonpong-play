@@ -26,7 +26,7 @@
   function defaultSave(cat) {
     const s = {
       version: 1, player: defaultPlayer(), cheated: false,
-      lastSetup: { points: cat.pointsToWin, winBy2: cat.winByTwo, upgrades: true, resetUpOnConcede: cat.econ.resetOnConcede, underdogComeback: true, underdogDiscount: true, breakTimerOn: true, breakTimerSec: Math.round(cat.econ.breakTimer), board: 'b_grid', ball: 'circle', cpuLevel: 1 },
+      lastSetup: { points: cat.pointsToWin, upgrades: true, resetUpOnConcede: cat.econ.resetOnConcede, underdogComeback: true, underdogDiscount: true, breakTimerOn: true, breakTimerSec: Math.round(cat.econ.breakTimer), board: 'b_grid', ball: 'circle', cpuLevel: 1 },
       settings: { music: 70, sfx: 80, miss: true, shake: true, reduceFlashing: false, muted: false },
     };
     sanitize(s.player, cat);

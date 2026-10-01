@@ -1,7 +1,7 @@
 (function (g) {
 g.CATALOG_RAW = {
   "version": 1,
-  "notes": "Single source of truth for upgrades, cosmetics and balls. All numbers are multipliers of the game's existing base values (paddle length, paddle speed, ball speed) so they plug into whatever the current code uses. Neon Pong 4.0 live copy: this file is embedded in NeonPong.exe and assets/catalog.json overrides it at startup. Both online players must use the same file.",
+  "notes": "Single source of truth for upgrades, cosmetics and balls. All numbers are multipliers of the game's existing base values (paddle length, paddle speed, ball speed) so they plug into whatever the current code uses. Live copy: NeonPong.exe reads this file at startup. Both online players must use the same file.",
   "match": {
     "pointsToWin": 21,
     "pointsToWinOptions": [
@@ -9,13 +9,12 @@ g.CATALOG_RAW = {
       21,
       31
     ],
-    "winByTwo": false,
     "matchPointBannerAt": 20
   },
   "upgradeEconomy": {
     "currency": "UP",
     "currencyName": "Upgrade Points",
-    "adaptNote": "Adapted to the existing game (SPEC 0.3): UP is earned by scoring and unspent UP resets when the opponent scores (the v2 streak rule). The shop still opens after every point (everyNTotalPoints 1); set it to 4 for the spec's default cadence.",
+    "adaptNote": "UP is earned by scoring and unspent UP resets when the opponent scores. The shop opens after every point (everyNTotalPoints 1); set it to 4 for a slower cadence.",
     "earnPerPointScored": 1,
     "underdogEarn": {
       "trailingBy": 4,
@@ -66,7 +65,7 @@ g.CATALOG_RAW = {
       "name": "Tune-Ups",
       "cost": 1,
       "color": "#00f0ff",
-      "rule": "Permanent for the match. Each one stacks up to its max.",
+      "rule": "Permanent for the match. Each one stacks up to its max. Dash is the one active ability in this tier.",
       "items": [
         {
           "id": "t1_long",
@@ -77,8 +76,7 @@ g.CATALOG_RAW = {
           "effect": "+12% paddle length per stack.",
           "params": {
             "paddleLength": 0.12
-          },
-          "formerly": "Extension"
+          }
         },
         {
           "id": "t1_quick",
@@ -89,8 +87,7 @@ g.CATALOG_RAW = {
           "effect": "+10% paddle speed per stack.",
           "params": {
             "paddleSpeed": 0.1
-          },
-          "formerly": "Thrust"
+          }
         },
         {
           "id": "t1_heavy",
@@ -101,8 +98,7 @@ g.CATALOG_RAW = {
           "effect": "Your returns leave 6% faster per stack.",
           "params": {
             "returnSpeed": 0.06
-          },
-          "formerly": "Hot Return"
+          }
         },
         {
           "id": "t1_grip",
@@ -124,25 +120,11 @@ g.CATALOG_RAW = {
           "key": "dash",
           "effect": "Tap Dash for a 0.2s burst at 2x paddle speed. Cooldown 4s (2.5s at 2 stacks).",
           "params": {
-            "burstMult": 2.0,
+            "burstMult": 2,
             "burstSec": 0.2,
             "cooldownSec": [
               4,
               2.5
-            ]
-          }
-        },
-        {
-          "id": "t1_tracer",
-          "name": "Tracer",
-          "icon": "dots",
-          "type": "passive",
-          "maxStacks": 2,
-          "effect": "Shows a dotted preview of the first 20% of the ball's path after your opponent hits (35% at 2 stacks).",
-          "params": {
-            "previewFraction": [
-              0.2,
-              0.35
             ]
           }
         },
@@ -176,8 +158,7 @@ g.CATALOG_RAW = {
           "effect": "+30% paddle length.",
           "params": {
             "paddleLength": 0.3
-          },
-          "formerly": "Titan Frame"
+          }
         },
         {
           "id": "t2_overdrive",
@@ -189,8 +170,7 @@ g.CATALOG_RAW = {
           "params": {
             "paddleSpeed": 0.25,
             "instantAccel": true
-          },
-          "formerly": "Overdrive"
+          }
         },
         {
           "id": "t2_curve",
@@ -226,11 +206,11 @@ g.CATALOG_RAW = {
           "slot": "mod",
           "maxStacks": 1,
           "key": "mod",
-          "effect": "The ball moves at 50% speed for 1.2s while it's on your half. Cooldown 15s.",
+          "effect": "The ball moves at 50% speed for 1.2s while it's on your half. Cooldown 30s.",
           "params": {
             "ballSpeedMult": 0.5,
             "durationSec": 1.2,
-            "cooldownSec": 15
+            "cooldownSec": 30
           }
         },
         {
@@ -241,11 +221,11 @@ g.CATALOG_RAW = {
           "slot": "mod",
           "maxStacks": 1,
           "key": "mod",
-          "effect": "Pulls the ball toward your paddle's height for 1.5s. Cooldown 15s.",
+          "effect": "Pulls the ball toward your paddle's height for 1.5s. Cooldown 30s.",
           "params": {
             "pullStrength": 0.6,
             "durationSec": 1.5,
-            "cooldownSec": 15
+            "cooldownSec": 30
           }
         }
       ]
@@ -255,32 +235,17 @@ g.CATALOG_RAW = {
       "name": "Ultimates",
       "cost": 3,
       "color": "#ffb020",
-      "rule": "Hold ONE active Ultimate at a time; buying another replaces it — actives show a cooldown ring and a visible tell so the other player can react. Twin Paddle and Guardian Drone are passives and don't compete for that slot, so you can run both together (and alongside an active Ultimate).",
+      "rule": "Hold ONE active Ultimate at a time; buying another replaces it. Actives show a cooldown ring and a visible tell so the other player can react. Twin Paddle and Guardian Drone are passives: you can run both, alongside an active Ultimate.",
       "items": [
         {
           "id": "t3_twin",
           "name": "Twin Paddle",
           "icon": "two-bars",
           "type": "passive",
-          "slot": "ultimate",
           "effect": "A second paddle (55% length) floats at 35% court depth on your side and mirrors your movement.",
           "params": {
             "lengthMult": 0.55,
             "depth": 0.35
-          }
-        },
-        {
-          "id": "t3_barrage",
-          "name": "Barrage",
-          "icon": "three-balls",
-          "type": "active",
-          "slot": "ultimate",
-          "key": "ultimate",
-          "effect": "Arm it, and your next hit splits into 3 balls (±15°). The first goal ends the rally. Usable once every 3 points.",
-          "params": {
-            "balls": 3,
-            "spreadDeg": 15,
-            "cooldownPoints": 3
           }
         },
         {
@@ -290,12 +255,12 @@ g.CATALOG_RAW = {
           "type": "active",
           "slot": "ultimate",
           "key": "ultimate",
-          "effect": "The opponent's paddle flashes blue for 0.3s, then moves at 40% speed for 2s. Cooldown 25s.",
+          "effect": "The opponent's paddle flashes blue for 0.3s, then moves at 40% speed for 3s. Cooldown 30s.",
           "params": {
             "telegraphSec": 0.3,
             "slowMult": 0.4,
-            "durationSec": 2.0,
-            "cooldownSec": 25
+            "durationSec": 3,
+            "cooldownSec": 30
           }
         },
         {
@@ -319,11 +284,11 @@ g.CATALOG_RAW = {
           "type": "active",
           "slot": "ultimate",
           "key": "ultimate",
-          "effect": "Arm it, and your next hit launches at 1.8x speed with a fire trail. The speed drops back to normal after one wall bounce. Cooldown 20s.",
+          "effect": "Arm it, and your next hit launches at 1.8x speed with a fire trail. The speed drops back to normal after one wall bounce. Cooldown 30s.",
           "params": {
             "speedMult": 1.8,
             "decayAfterWallBounces": 1,
-            "cooldownSec": 20
+            "cooldownSec": 30
           }
         },
         {
@@ -331,7 +296,6 @@ g.CATALOG_RAW = {
           "name": "Guardian Drone",
           "icon": "drone",
           "type": "passive",
-          "slot": "ultimate",
           "effect": "A small drone (35% paddle length) patrols your goal line, tracking the ball at 45% of your paddle speed.",
           "params": {
             "lengthMult": 0.35,
@@ -353,14 +317,13 @@ g.CATALOG_RAW = {
           }
         }
       ]
-    }
-    ,
+    },
     {
       "tier": 4,
       "name": "Legendary",
       "cost": 5,
       "color": "#ff2b6a",
-      "rule": "Hold ONE Legendary at a time; buying another replaces it. Costs 5 UP — these are game-changers.",
+      "rule": "Hold ONE active Legendary at a time (Snare, Second Wind or Barrage); buying another replaces it. Shield Wall is passive and stacks alongside. Costs 5 UP.",
       "items": [
         {
           "id": "t4_snare",
@@ -369,11 +332,11 @@ g.CATALOG_RAW = {
           "type": "active",
           "slot": "legendary",
           "key": "legendary",
-          "effect": "Arm it, and your next hit catches the ball on your paddle for 1.2s instead of returning it. Move to aim, then it launches on its own at 15% extra speed. Cooldown 20s.",
+          "effect": "Arm it, and your next hit catches the ball on your paddle for 1.2s instead of returning it. Move to aim, then it launches on its own at 2x the ball's speed. Cooldown 30s.",
           "params": {
             "holdSec": 1.2,
-            "releaseSpeedMult": 1.15,
-            "cooldownSec": 20
+            "releaseBallSpeedMult": 2,
+            "cooldownSec": 30
           }
         },
         {
@@ -383,9 +346,23 @@ g.CATALOG_RAW = {
           "type": "active",
           "slot": "legendary",
           "key": "legendary",
-          "effect": "Arm it, and the next round you'd lose is voided instead — no score change, the ball just re-serves. Cooldown 30s.",
+          "effect": "Arm it, and the next round you'd lose is voided instead: no score change, the ball just re-serves. One use per round; it refreshes whenever a point is awarded.",
           "params": {
-            "cooldownSec": 30
+            "usesPerRound": 1
+          }
+        },
+        {
+          "id": "t4_barrage",
+          "name": "Barrage",
+          "icon": "three-balls",
+          "type": "active",
+          "slot": "legendary",
+          "key": "legendary",
+          "effect": "Arm it, and your next hit splits into 2 balls, 15° apart. The first goal ends the rally. Usable once every 3 points.",
+          "params": {
+            "balls": 2,
+            "spreadDeg": 15,
+            "cooldownPoints": 3
           }
         },
         {
@@ -393,13 +370,11 @@ g.CATALOG_RAW = {
           "name": "Shield Wall",
           "icon": "shield",
           "type": "passive",
-          "slot": "legendary",
           "effect": "A glowing barrier on your goal blocks one round loss, then breaks. Recharges after 3 more points are played.",
           "params": {
             "blocks": 1,
             "rechargePoints": 3
-          },
-          "formerly": "Second Chance"
+          }
         }
       ]
     }
@@ -408,9 +383,9 @@ g.CATALOG_RAW = {
     "currencyName": "Coins",
     "perPlayerWallets": true,
     "earn": {
-      "win": 25,
+      "win": 50,
       "loss": 10,
-      "perPointScored": 1,
+      "perPointScored": 2,
       "rallyBonus": {
         "minHits": 15,
         "coins": 10,
@@ -462,7 +437,7 @@ g.CATALOG_RAW = {
       "id": "glow",
       "name": "Glow",
       "slot": "per-player",
-      "desc": "An outline that glows around your paddle (and your half of the court border)."
+      "desc": "Light your paddle gives off. The Glow you equip sets your paddle's colour, its bloom and how it animates."
     },
     {
       "id": "aura",
@@ -492,13 +467,13 @@ g.CATALOG_RAW = {
       "id": "hud",
       "name": "Scoreboard",
       "slot": "per-player",
-      "desc": "The style of your score digits."
+      "desc": "The style of your score digits. Pick their colour below."
     },
     {
       "id": "ball",
       "name": "Balls",
       "slot": "match",
-      "desc": "What the ball looks like. Picked in Match Setup from either player's unlocked balls."
+      "desc": "What the ball looks like. The Shapes can be recoloured below. Picked in Match Setup from either player's unlocked balls."
     }
   ],
   "cosmetics": [
@@ -507,7 +482,7 @@ g.CATALOG_RAW = {
       "cat": "paddle",
       "name": "Classic",
       "rarity": "default",
-      "desc": "Clean white bar with a soft neon edge."
+      "desc": "The clean bar. It takes its colour from your Glow (white by default)."
     },
     {
       "id": "p_chrome",
@@ -563,77 +538,77 @@ g.CATALOG_RAW = {
       "cat": "paddle",
       "name": "Plasma Bar",
       "rarity": "epic",
-      "desc": "A humming bar of pure energy with a flickering white core."
+      "desc": "A humming bar of pure energy with a flickering white core, in your glow colour."
     },
     {
       "id": "p_chevron",
       "cat": "paddle",
       "name": "Chevron",
       "rarity": "rare",
-      "desc": "Dark racing chevrons that stream along the bar. Carried over from v2."
+      "desc": "Dark racing chevrons stream along a bar in your glow colour."
     },
     {
       "id": "p_knife",
       "cat": "paddle",
       "name": "Knife",
       "rarity": "rare",
-      "desc": "A polished blade with a wrapped handle."
+      "desc": "A kitchen-style knife: pointed blade with a bright cutting edge, brass guard and a riveted wooden handle."
     },
     {
       "id": "p_surfboard",
       "cat": "paddle",
       "name": "Surfboard",
       "rarity": "common",
-      "desc": "A rounded board with a racing stripe and a single fin line."
+      "desc": "A proper surfboard: pointed nose, painted panels, a centre stringer, a wax patch and three tail fins."
     },
     {
       "id": "p_soccergoal",
       "cat": "paddle",
       "name": "Soccer Goal",
       "rarity": "common",
-      "desc": "A turfy green goalmouth with a taut net and painted goal line."
+      "desc": "A goal from above: dark turf inside a white frame, with a fine diamond net."
     },
     {
       "id": "p_lightsaber",
       "cat": "paddle",
       "name": "Lightsaber",
       "rarity": "legendary",
-      "desc": "A humming energy blade in your colour, with a machined metal hilt."
+      "desc": "A humming energy blade in your glow colour, with a machined metal hilt."
     },
     {
       "id": "o_none",
       "cat": "glow",
-      "name": "No Glow",
+      "name": "Soft White",
       "rarity": "default",
-      "desc": "No glow."
+      "desc": "The default: a white paddle with a soft white bloom. Always free."
     },
     {
       "id": "o_cyan",
       "cat": "glow",
       "name": "Cyan Glow",
       "rarity": "common",
-      "desc": "A steady cyan glow."
+      "desc": "A steady cyan glow. Your paddle turns cyan and gives off cyan light."
     },
     {
       "id": "o_pink",
       "cat": "glow",
       "name": "Hot Pink Glow",
       "rarity": "common",
-      "desc": "A steady hot-pink glow."
+      "desc": "A steady pink glow."
     },
     {
       "id": "o_pulse",
       "cat": "glow",
       "name": "Beat Pulse",
       "rarity": "epic",
-      "desc": "The glow pulses in time with the music's tempo."
+      "desc": "A violet bloom that swells smoothly on every beat of the music."
     },
     {
       "id": "o_rainbow",
       "cat": "glow",
       "name": "Rainbow Glow",
       "rarity": "legendary",
-      "desc": "An animated rainbow glow that flows around your paddle and your side of the court border."
+      "desc": "The glow and paddle drift smoothly through every colour."
     },
     {
       "id": "o_lime",
@@ -661,14 +636,14 @@ g.CATALOG_RAW = {
       "cat": "glow",
       "name": "Ice Glow",
       "rarity": "rare",
-      "desc": "A slow, cold blue glow that breathes in and out."
+      "desc": "A cold pale-blue glow that slowly breathes brighter and dimmer."
     },
     {
       "id": "o_flame",
       "cat": "glow",
       "name": "Flame Glow",
       "rarity": "epic",
-      "desc": "A warm, flickering flame-orange glow."
+      "desc": "A warm orange glow that flickers like a fire."
     },
     {
       "id": "a_none",
@@ -682,21 +657,21 @@ g.CATALOG_RAW = {
       "cat": "aura",
       "name": "Halo",
       "rarity": "common",
-      "desc": "Three lights orbit your paddle. Carried over from v2."
+      "desc": "Three lights orbit your paddle."
     },
     {
       "id": "a_sparks",
       "cat": "aura",
       "name": "Sparks",
       "rarity": "rare",
-      "desc": "Sparkling particles dance around the bar. Carried over from v2."
+      "desc": "Sparkling particles dance around the bar."
     },
     {
       "id": "a_comet",
       "cat": "aura",
       "name": "Comet",
       "rarity": "epic",
-      "desc": "A flowing wake streams behind your paddle. Carried over from v2."
+      "desc": "A flowing wake streams behind your paddle."
     },
     {
       "id": "a_hearts",
@@ -829,7 +804,7 @@ g.CATALOG_RAW = {
       "cat": "board",
       "name": "Football Field",
       "rarity": "common",
-      "desc": "A gridiron with yard lines, hash marks and tinted end zones."
+      "desc": "A gridiron with yard lines, hash marks, tinted end zones and a matching worn dirt patch at each end."
     },
     {
       "id": "b_snowstorm",
@@ -843,14 +818,14 @@ g.CATALOG_RAW = {
       "cat": "board",
       "name": "Spaceship",
       "rarity": "epic",
-      "desc": "A cockpit window frame around a calm, twinkling starfield."
+      "desc": "The inside of a ship: ribbed corridor walls, chasing light strips, console LEDs and a viewport onto a slow planet."
     },
     {
       "id": "b_grassyfield",
       "cat": "board",
       "name": "Grassy Field",
       "rarity": "common",
-      "desc": "An open sunny meadow with drifting clouds and mowed stripes."
+      "desc": "An open meadow: hundreds of grass blades sway in rolling gusts while cloud shadows drift over."
     },
     {
       "id": "t_none",
@@ -962,7 +937,7 @@ g.CATALOG_RAW = {
       "cat": "goalfx",
       "name": "Implosion",
       "rarity": "legendary",
-      "desc": "The board gets sucked into the goal for a moment, then pops back out."
+      "desc": "The goal pulls the light in: contracting rings, spiralling sparks, a flare that snaps shut, then a last flash."
     },
     {
       "id": "h_arcade",
@@ -985,51 +960,657 @@ g.CATALOG_RAW = {
       "rarity": "rare",
       "desc": "Split-flap digits that flip over on every point."
     },
-    {"id": "h_dotmatrix", "cat": "hud", "name": "Dot Matrix", "rarity": "common", "desc": "Round LED dots instead of segments."},
-    {"id": "h_outline", "cat": "hud", "name": "Outline", "rarity": "common", "desc": "Clean hollow digits."},
-    {"id": "h_mono", "cat": "hud", "name": "Monospace", "rarity": "common", "desc": "Flat, no-glow monospace digits with an underline."},
-    {"id": "h_binary", "cat": "hud", "name": "Binary", "rarity": "rare", "desc": "A faint scroll of 1s and 0s behind the digits."},
-    {"id": "h_hologram", "cat": "hud", "name": "Hologram", "rarity": "rare", "desc": "A flickery cyan/magenta split with scanlines."},
-    {"id": "h_circuit", "cat": "hud", "name": "Circuit", "rarity": "rare", "desc": "Glowing digits framed by circuit-trace ticks."},
-    {"id": "h_neonsign", "cat": "hud", "name": "Neon Sign", "rarity": "epic", "desc": "A warm tube-light glow that flickers now and then."},
-    {"id": "h_glitch", "cat": "hud", "name": "Glitch", "rarity": "epic", "desc": "RGB-split jitter that spikes every couple of seconds."},
-    {"id": "h_rainbow", "cat": "hud", "name": "Rainbow Billboard", "rarity": "legendary", "desc": "An animated marquee billboard behind color-cycling digits."},
-    {"id": "circle", "cat": "ball", "name": "Classic", "rarity": "default", "desc": "The original ball. Always free."},
-    {"id": "square", "cat": "ball", "name": "Square", "rarity": "common", "desc": "A spinning square."},
-    {"id": "triangle", "cat": "ball", "name": "Triangle", "rarity": "common", "desc": "A spinning triangle."},
-    {"id": "diamond", "cat": "ball", "name": "Diamond", "rarity": "common", "desc": "A gently rocking diamond."},
-    {"id": "pentagon", "cat": "ball", "name": "Pentagon", "rarity": "common", "desc": "A spinning pentagon."},
-    {"id": "hexagon", "cat": "ball", "name": "Hexagon", "rarity": "common", "desc": "A spinning hexagon."},
-    {"id": "star", "cat": "ball", "name": "Star", "rarity": "common", "desc": "A spinning five-point star."},
-    {"id": "heart", "cat": "ball", "name": "Heart", "rarity": "common", "desc": "A heart that beats as it flies."},
-    {"id": "cube", "cat": "ball", "name": "Wire Cube", "rarity": "common", "desc": "A 3D wireframe cube that tumbles."},
-    {"id": "alien", "cat": "ball", "name": "Alien", "rarity": "rare", "desc": "A lime-green head with two big black eyes."},
-    {"id": "ufo", "cat": "ball", "name": "UFO", "rarity": "rare", "desc": "A saucer with blinking lights."},
-    {"id": "planet", "cat": "ball", "name": "Ringed Planet", "rarity": "rare", "desc": "A tilted ring around a banded planet."},
-    {"id": "moon", "cat": "ball", "name": "Crescent Moon", "rarity": "rare", "desc": "A soft crescent moon."},
-    {"id": "sun", "cat": "ball", "name": "Sun", "rarity": "rare", "desc": "A spinning sun with rays."},
-    {"id": "atom", "cat": "ball", "name": "Atom", "rarity": "rare", "desc": "Three orbits with electrons flying around a nucleus."},
-    {"id": "basketball", "cat": "ball", "name": "Basketball", "rarity": "common", "desc": "A classic basketball."},
-    {"id": "soccer", "cat": "ball", "name": "Soccer Ball", "rarity": "common", "desc": "A classic soccer ball."},
-    {"id": "tennis", "cat": "ball", "name": "Tennis Ball", "rarity": "common", "desc": "A fuzzy tennis ball."},
-    {"id": "baseball", "cat": "ball", "name": "Baseball", "rarity": "common", "desc": "Stitched red laces on white leather."},
-    {"id": "eightball", "cat": "ball", "name": "8-Ball", "rarity": "rare", "desc": "The dreaded 8-ball."},
-    {"id": "pizza", "cat": "ball", "name": "Pizza Slice", "rarity": "common", "desc": "A slice with pepperoni."},
-    {"id": "donut", "cat": "ball", "name": "Donut", "rarity": "common", "desc": "Frosted with sprinkles."},
-    {"id": "taco", "cat": "ball", "name": "Taco", "rarity": "common", "desc": "A folded taco shell, fully loaded."},
-    {"id": "cookie", "cat": "ball", "name": "Cookie", "rarity": "common", "desc": "A chocolate chip cookie."},
-    {"id": "skull", "cat": "ball", "name": "Skull", "rarity": "rare", "desc": "A grinning skull."},
-    {"id": "eyeball", "cat": "ball", "name": "Eyeball", "rarity": "rare", "desc": "The pupil looks toward whoever it's flying at."},
-    {"id": "ghost", "cat": "ball", "name": "Ghost", "rarity": "rare", "desc": "A plain white sheet ghost."},
-    {"id": "bomb", "cat": "ball", "name": "Bomb", "rarity": "epic", "desc": "The fuse sparks faster as the rally gets longer."},
-    {"id": "duck", "cat": "ball", "name": "Rubber Duck", "rarity": "common", "desc": "A rubber duck, wobbling along."},
-    {"id": "catface", "cat": "ball", "name": "Cat Face", "rarity": "common", "desc": "A blinking cat face."},
-    {"id": "smiley", "cat": "ball", "name": "Smiley", "rarity": "common", "desc": "Turns shocked at high speed."},
-    {"id": "dice", "cat": "ball", "name": "Die", "rarity": "rare", "desc": "Shows a different face on every hit."},
-    {"id": "coin", "cat": "ball", "name": "Spinning Coin", "rarity": "rare", "desc": "A coin flipping edge over edge."},
-    {"id": "gem", "cat": "ball", "name": "Gem", "rarity": "epic", "desc": "A faceted, rocking gem."},
-    {"id": "snowflake", "cat": "ball", "name": "Snowflake", "rarity": "rare", "desc": "A six-armed snowflake."},
-    {"id": "crown", "cat": "ball", "name": "Crown", "rarity": "legendary", "desc": "A jeweled crown fit for a champion."}
+    {
+      "id": "h_dotmatrix",
+      "cat": "hud",
+      "name": "Dot Matrix",
+      "rarity": "common",
+      "desc": "A grid of round dots, spaced so even a leading zero stays clear of the next digit."
+    },
+    {
+      "id": "h_outline",
+      "cat": "hud",
+      "name": "Outline",
+      "rarity": "common",
+      "desc": "Clean hollow digits."
+    },
+    {
+      "id": "h_mono",
+      "cat": "hud",
+      "name": "Monospace",
+      "rarity": "common",
+      "desc": "Flat, no-glow monospace digits with an underline."
+    },
+    {
+      "id": "h_binary",
+      "cat": "hud",
+      "name": "Binary",
+      "rarity": "rare",
+      "desc": "A faint scroll of 1s and 0s behind the digits."
+    },
+    {
+      "id": "h_hologram",
+      "cat": "hud",
+      "name": "Hologram",
+      "rarity": "rare",
+      "desc": "A flickery cyan/magenta split with scanlines."
+    },
+    {
+      "id": "h_circuit",
+      "cat": "hud",
+      "name": "Circuit",
+      "rarity": "rare",
+      "desc": "Glowing digits framed by circuit-trace ticks."
+    },
+    {
+      "id": "h_neonsign",
+      "cat": "hud",
+      "name": "Neon Sign",
+      "rarity": "epic",
+      "desc": "A warm tube-light glow that flickers now and then."
+    },
+    {
+      "id": "h_glitch",
+      "cat": "hud",
+      "name": "Glitch",
+      "rarity": "epic",
+      "desc": "RGB-split jitter that spikes every couple of seconds."
+    },
+    {
+      "id": "h_rainbow",
+      "cat": "hud",
+      "name": "Rainbow Billboard",
+      "rarity": "legendary",
+      "desc": "No backing panel: each digit cycles smoothly through the colours of the rainbow."
+    },
+    {
+      "id": "circle",
+      "cat": "ball",
+      "name": "Classic",
+      "rarity": "default",
+      "desc": "The original ball. Always free."
+    },
+    {
+      "id": "square",
+      "cat": "ball",
+      "name": "Square",
+      "rarity": "common",
+      "desc": "A spinning square."
+    },
+    {
+      "id": "triangle",
+      "cat": "ball",
+      "name": "Triangle",
+      "rarity": "common",
+      "desc": "A spinning triangle."
+    },
+    {
+      "id": "diamond",
+      "cat": "ball",
+      "name": "Diamond",
+      "rarity": "common",
+      "desc": "A gently rocking diamond."
+    },
+    {
+      "id": "pentagon",
+      "cat": "ball",
+      "name": "Pentagon",
+      "rarity": "common",
+      "desc": "A spinning pentagon."
+    },
+    {
+      "id": "hexagon",
+      "cat": "ball",
+      "name": "Hexagon",
+      "rarity": "common",
+      "desc": "A spinning hexagon."
+    },
+    {
+      "id": "star",
+      "cat": "ball",
+      "name": "Star",
+      "rarity": "common",
+      "desc": "A spinning five-point star."
+    },
+    {
+      "id": "heart",
+      "cat": "ball",
+      "name": "Heart",
+      "rarity": "common",
+      "desc": "A heart that beats as it flies."
+    },
+    {
+      "id": "cube",
+      "cat": "ball",
+      "name": "Wire Cube",
+      "rarity": "common",
+      "desc": "A 3D wireframe cube that tumbles."
+    },
+    {
+      "id": "alien",
+      "cat": "ball",
+      "name": "Alien",
+      "rarity": "rare",
+      "desc": "A lime-green head with two big black eyes."
+    },
+    {
+      "id": "ufo",
+      "cat": "ball",
+      "name": "UFO",
+      "rarity": "rare",
+      "desc": "A saucer with blinking lights."
+    },
+    {
+      "id": "planet",
+      "cat": "ball",
+      "name": "Ringed Planet",
+      "rarity": "rare",
+      "desc": "A tilted ring around a banded planet."
+    },
+    {
+      "id": "moon",
+      "cat": "ball",
+      "name": "Crescent Moon",
+      "rarity": "rare",
+      "desc": "A soft crescent moon."
+    },
+    {
+      "id": "sun",
+      "cat": "ball",
+      "name": "Sun",
+      "rarity": "rare",
+      "desc": "A spinning sun with rays."
+    },
+    {
+      "id": "atom",
+      "cat": "ball",
+      "name": "Atom",
+      "rarity": "rare",
+      "desc": "Three orbits with electrons flying around a nucleus."
+    },
+    {
+      "id": "basketball",
+      "cat": "ball",
+      "name": "Basketball",
+      "rarity": "common",
+      "desc": "A classic basketball."
+    },
+    {
+      "id": "soccer",
+      "cat": "ball",
+      "name": "Soccer Ball",
+      "rarity": "common",
+      "desc": "A classic soccer ball."
+    },
+    {
+      "id": "tennis",
+      "cat": "ball",
+      "name": "Tennis Ball",
+      "rarity": "common",
+      "desc": "A fuzzy tennis ball."
+    },
+    {
+      "id": "baseball",
+      "cat": "ball",
+      "name": "Baseball",
+      "rarity": "common",
+      "desc": "Stitched red laces on white leather."
+    },
+    {
+      "id": "eightball",
+      "cat": "ball",
+      "name": "8-Ball",
+      "rarity": "rare",
+      "desc": "The dreaded 8-ball."
+    },
+    {
+      "id": "pizza",
+      "cat": "ball",
+      "name": "Pizza Slice",
+      "rarity": "common",
+      "desc": "A slice with pepperoni."
+    },
+    {
+      "id": "donut",
+      "cat": "ball",
+      "name": "Donut",
+      "rarity": "common",
+      "desc": "Frosted with sprinkles."
+    },
+    {
+      "id": "taco",
+      "cat": "ball",
+      "name": "Taco",
+      "rarity": "common",
+      "desc": "A folded taco shell, fully loaded."
+    },
+    {
+      "id": "cookie",
+      "cat": "ball",
+      "name": "Cookie",
+      "rarity": "common",
+      "desc": "A chocolate chip cookie."
+    },
+    {
+      "id": "skull",
+      "cat": "ball",
+      "name": "Skull",
+      "rarity": "rare",
+      "desc": "A grinning skull."
+    },
+    {
+      "id": "eyeball",
+      "cat": "ball",
+      "name": "Eyeball",
+      "rarity": "rare",
+      "desc": "The pupil looks toward whoever it's flying at."
+    },
+    {
+      "id": "ghost",
+      "cat": "ball",
+      "name": "Ghost",
+      "rarity": "rare",
+      "desc": "A plain white sheet ghost."
+    },
+    {
+      "id": "bomb",
+      "cat": "ball",
+      "name": "Bomb",
+      "rarity": "epic",
+      "desc": "The fuse sparks faster as the rally gets longer."
+    },
+    {
+      "id": "duck",
+      "cat": "ball",
+      "name": "Rubber Duck",
+      "rarity": "common",
+      "desc": "A rubber duck, wobbling along."
+    },
+    {
+      "id": "catface",
+      "cat": "ball",
+      "name": "Cat Face",
+      "rarity": "common",
+      "desc": "A blinking cat face."
+    },
+    {
+      "id": "smiley",
+      "cat": "ball",
+      "name": "Smiley",
+      "rarity": "common",
+      "desc": "Turns shocked at high speed."
+    },
+    {
+      "id": "dice",
+      "cat": "ball",
+      "name": "Die",
+      "rarity": "rare",
+      "desc": "Shows a different face on every hit."
+    },
+    {
+      "id": "coin",
+      "cat": "ball",
+      "name": "Spinning Coin",
+      "rarity": "rare",
+      "desc": "A coin flipping edge over edge."
+    },
+    {
+      "id": "gem",
+      "cat": "ball",
+      "name": "Gem",
+      "rarity": "epic",
+      "desc": "A faceted, rocking gem."
+    },
+    {
+      "id": "snowflake",
+      "cat": "ball",
+      "name": "Snowflake",
+      "rarity": "rare",
+      "desc": "A six-armed snowflake."
+    },
+    {
+      "id": "crown",
+      "cat": "ball",
+      "name": "Crown",
+      "rarity": "legendary",
+      "desc": "A jeweled crown fit for a champion."
+    },
+    {
+      "id": "o_white",
+      "cat": "glow",
+      "name": "Radiant White",
+      "rarity": "common",
+      "desc": "A brighter, steady white bloom than the default."
+    },
+    {
+      "id": "o_red",
+      "cat": "glow",
+      "name": "Red Glow",
+      "rarity": "common",
+      "desc": "A steady red glow."
+    },
+    {
+      "id": "o_orange",
+      "cat": "glow",
+      "name": "Orange Glow",
+      "rarity": "common",
+      "desc": "A steady orange glow."
+    },
+    {
+      "id": "o_yellow",
+      "cat": "glow",
+      "name": "Yellow Glow",
+      "rarity": "common",
+      "desc": "A steady yellow glow."
+    },
+    {
+      "id": "o_green",
+      "cat": "glow",
+      "name": "Green Glow",
+      "rarity": "common",
+      "desc": "A steady green glow."
+    },
+    {
+      "id": "o_blue",
+      "cat": "glow",
+      "name": "Blue Glow",
+      "rarity": "common",
+      "desc": "A steady blue glow."
+    },
+    {
+      "id": "o_teal",
+      "cat": "glow",
+      "name": "Teal Glow",
+      "rarity": "common",
+      "desc": "A steady teal glow."
+    },
+    {
+      "id": "o_magenta",
+      "cat": "glow",
+      "name": "Magenta Glow",
+      "rarity": "common",
+      "desc": "A steady magenta glow."
+    },
+    {
+      "id": "o_pulse_red",
+      "cat": "glow",
+      "name": "Red Beat Pulse",
+      "rarity": "rare",
+      "desc": "A red bloom that swells smoothly on every beat."
+    },
+    {
+      "id": "o_pulse_blue",
+      "cat": "glow",
+      "name": "Blue Beat Pulse",
+      "rarity": "rare",
+      "desc": "A blue bloom that swells smoothly on every beat."
+    },
+    {
+      "id": "o_pulse_green",
+      "cat": "glow",
+      "name": "Green Beat Pulse",
+      "rarity": "rare",
+      "desc": "A green bloom that swells smoothly on every beat."
+    },
+    {
+      "id": "o_pulse_pink",
+      "cat": "glow",
+      "name": "Pink Beat Pulse",
+      "rarity": "rare",
+      "desc": "A pink bloom that swells smoothly on every beat."
+    },
+    {
+      "id": "o_pulse_rainbow",
+      "cat": "glow",
+      "name": "Rainbow Beat Pulse",
+      "rarity": "legendary",
+      "desc": "Cycles through every colour while it swells on the beat."
+    },
+    {
+      "id": "o_breathe_cyan",
+      "cat": "glow",
+      "name": "Cyan Breathing",
+      "rarity": "rare",
+      "desc": "A cyan glow that slowly brightens and dims."
+    },
+    {
+      "id": "o_breathe_red",
+      "cat": "glow",
+      "name": "Red Breathing",
+      "rarity": "rare",
+      "desc": "A red glow that slowly brightens and dims."
+    },
+    {
+      "id": "o_breathe_green",
+      "cat": "glow",
+      "name": "Green Breathing",
+      "rarity": "rare",
+      "desc": "A green glow that slowly brightens and dims."
+    },
+    {
+      "id": "o_breathe_pink",
+      "cat": "glow",
+      "name": "Pink Breathing",
+      "rarity": "rare",
+      "desc": "A pink glow that slowly brightens and dims."
+    },
+    {
+      "id": "o_breathe_rainbow",
+      "cat": "glow",
+      "name": "Rainbow Breathing",
+      "rarity": "legendary",
+      "desc": "Drifts through every colour while it slowly breathes."
+    },
+    {
+      "id": "a_lightning",
+      "cat": "aura",
+      "name": "Lightning",
+      "rarity": "epic",
+      "desc": "Electric arcs and sparks jump off the edges of your paddle."
+    },
+    {
+      "id": "a_frost",
+      "cat": "aura",
+      "name": "Frost",
+      "rarity": "epic",
+      "desc": "Drifting mist, falling snow and small ice crystals that flash in and out."
+    },
+    {
+      "id": "a_fire",
+      "cat": "aura",
+      "name": "Fire",
+      "rarity": "epic",
+      "desc": "Flames lick up both sides of the paddle and embers drift away."
+    },
+    {
+      "id": "a_shockwave",
+      "cat": "aura",
+      "name": "Shockwave",
+      "rarity": "legendary",
+      "desc": "A ring bursts outward from your paddle every time you hit the ball."
+    },
+    {
+      "id": "a_petals",
+      "cat": "aura",
+      "name": "Petals",
+      "rarity": "common",
+      "desc": "Soft pink petals drift down past your paddle."
+    },
+    {
+      "id": "a_bubbles",
+      "cat": "aura",
+      "name": "Bubbles",
+      "rarity": "common",
+      "desc": "Shiny bubbles float up along the paddle."
+    },
+    {
+      "id": "a_orbit",
+      "cat": "aura",
+      "name": "Orbiting Worlds",
+      "rarity": "rare",
+      "desc": "Three tiny worlds circle your paddle, one of them ringed."
+    },
+    {
+      "id": "t_lightning",
+      "cat": "trail",
+      "name": "Lightning",
+      "rarity": "epic",
+      "desc": "A crackling bolt follows the ball with the odd fork. The ball itself stays clear."
+    },
+    {
+      "id": "t_glitch",
+      "cat": "trail",
+      "name": "Glitch",
+      "rarity": "epic",
+      "desc": "Chopped afterimages with the red and cyan channels pulled apart."
+    },
+    {
+      "id": "b_grid_cyan",
+      "cat": "board",
+      "name": "Cyan Grid",
+      "rarity": "common",
+      "desc": "The synth-wave grid in electric cyan."
+    },
+    {
+      "id": "b_grid_green",
+      "cat": "board",
+      "name": "Green Grid",
+      "rarity": "common",
+      "desc": "The synth-wave grid in matrix green."
+    },
+    {
+      "id": "b_grid_orange",
+      "cat": "board",
+      "name": "Orange Grid",
+      "rarity": "common",
+      "desc": "The synth-wave grid in sunset orange."
+    },
+    {
+      "id": "b_grid_red",
+      "cat": "board",
+      "name": "Red Grid",
+      "rarity": "common",
+      "desc": "The synth-wave grid in alarm red."
+    },
+    {
+      "id": "b_sunset_crt",
+      "cat": "board",
+      "name": "Retro Sunset CRT",
+      "rarity": "epic",
+      "desc": "The striped sunset seen on an old tube: scanlines, phosphor bloom, a rolling bar and a heavy vignette."
+    },
+    {
+      "id": "b_classic",
+      "cat": "board",
+      "name": "Classic Pong",
+      "rarity": "common",
+      "desc": "Pure black and white with a dashed centre line, like the very first arcade cabinet."
+    },
+    {
+      "id": "b_lavalamp_blue",
+      "cat": "board",
+      "name": "Blue Lava Lamp",
+      "rarity": "common",
+      "desc": "Big soft blobs of blue and cyan slowly rise and merge."
+    },
+    {
+      "id": "b_deepsea_light",
+      "cat": "board",
+      "name": "Light Deep Sea",
+      "rarity": "rare",
+      "desc": "A pale sea in white, black ink and red: jellyfish and bubbles drift by. Paddles get a soft shadow so they stay readable."
+    },
+    {
+      "id": "b_city",
+      "cat": "board",
+      "name": "Neon City",
+      "rarity": "epic",
+      "desc": "A night skyline in three drifting layers, with lit windows and neon signs."
+    },
+    {
+      "id": "b_pcb",
+      "cat": "board",
+      "name": "Circuit Board",
+      "rarity": "rare",
+      "desc": "Green traces, chips and pads with data pulses running along the wiring."
+    },
+    {
+      "id": "b_icerink",
+      "cat": "board",
+      "name": "Ice Rink",
+      "rarity": "common",
+      "desc": "Scratched white ice with red and blue lines and face-off circles. Paddles get a soft shadow so they stay readable."
+    },
+    {
+      "id": "b_dunes",
+      "cat": "board",
+      "name": "Desert Dusk",
+      "rarity": "rare",
+      "desc": "Layered dunes under a low sun, with wind-blown sand skimming across."
+    },
+    {
+      "id": "p_pencil",
+      "cat": "paddle",
+      "name": "Pencil",
+      "rarity": "common",
+      "desc": "A sharpened yellow pencil with a metal ferrule and a pink eraser."
+    },
+    {
+      "id": "p_bamboo",
+      "cat": "paddle",
+      "name": "Bamboo",
+      "rarity": "common",
+      "desc": "A green bamboo stalk with nodes and two swaying leaves."
+    },
+    {
+      "id": "p_crystal",
+      "cat": "paddle",
+      "name": "Crystal",
+      "rarity": "epic",
+      "desc": "A faceted crystal with a glint that sweeps down it. Tinted by your glow."
+    },
+    {
+      "id": "p_rocket",
+      "cat": "paddle",
+      "name": "Rocket",
+      "rarity": "rare",
+      "desc": "A little rocket with a flickering exhaust flame."
+    },
+    {
+      "id": "p_ruler",
+      "cat": "paddle",
+      "name": "Ruler",
+      "rarity": "common",
+      "desc": "A wooden ruler with centimetre marks."
+    },
+    {
+      "id": "g_starburst",
+      "cat": "goalfx",
+      "name": "Starburst",
+      "rarity": "rare",
+      "desc": "Rays fan out from the goal and colourful stars fly across the court."
+    },
+    {
+      "id": "g_lightning",
+      "cat": "goalfx",
+      "name": "Lightning Strike",
+      "rarity": "epic",
+      "desc": "Forked bolts crash down onto the goal with a white flash."
+    },
+    {
+      "id": "g_coinshower",
+      "cat": "goalfx",
+      "name": "Coin Shower",
+      "rarity": "rare",
+      "desc": "Gold coins rain down and bounce across the court."
+    },
+    {
+      "id": "g_laser",
+      "cat": "goalfx",
+      "name": "Laser Show",
+      "rarity": "epic",
+      "desc": "Sweeping neon laser beams fan out from the goal."
+    }
   ],
   "balls": {
     "rule": "Every ball uses the SAME circular hitbox and physics. Shapes are visual only, so every ball is fair. Shapes rotate with the ball's spin/travel direction.",
@@ -1247,7 +1828,7 @@ g.CATALOG_RAW = {
           "match"
         ],
         "rallyTempo": {
-          "startRate": 1.0,
+          "startRate": 1,
           "maxRate": 1.2,
           "stepPerHit": 0.01,
           "resetOnPoint": true
