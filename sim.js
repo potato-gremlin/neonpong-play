@@ -1,4 +1,4 @@
-// Ported from source/game.h + source/catalog.h (Neon Pong 4.0, native C++). No DOM dependency —
+// Ported from source/game.h + source/catalog.h (Neon Pong 4.1, native C++). No DOM dependency —
 // runs identically under Node (for headless smoke tests) and in the browser.
 (function (root, factory) {
   const mod = factory();
@@ -9,10 +9,10 @@
   const CW = 1000, CH = 600, WallTop = 30, WallBot = 570, BallR = 9, FaceL = 64, FaceR = 936;
   const DEG = Math.PI / 180;
 
-  const U = { Long: 0, Quick: 1, Heavy: 2, Grip: 3, Dash: 4, Tracer: 5, Steady: 6, Titan: 7, Overdrive: 8, Curve: 9, Shield: 10, Mirage: 11, Bullet: 12, Magnet: 13, Twin: 14, Barrage: 15, Cryo: 16, BlackHole: 17, Smash: 18, Guardian: 19, Shrink: 20, Snare: 21, SecondWind: 22 };
-  const UCount = 23;
-  const upgradeIds = ['t1_long', 't1_quick', 't1_heavy', 't1_grip', 't1_dash', 't1_tracer', 't1_steady', 't2_titan', 't2_overdrive', 't2_curve', 't4_shield', 't2_mirage',
-    't2_bullet', 't2_magnet', 't3_twin', 't3_barrage', 't3_cryo', 't3_blackhole', 't3_smash', 't3_guardian', 't3_shrink', 't4_snare', 't4_secondwind'];
+  const U = { Long: 0, Quick: 1, Heavy: 2, Grip: 3, Dash: 4, Steady: 5, Titan: 6, Overdrive: 7, Curve: 8, Shield: 9, Mirage: 10, Bullet: 11, Magnet: 12, Twin: 13, Cryo: 14, BlackHole: 15, Smash: 16, Guardian: 17, Shrink: 18, Snare: 19, SecondWind: 20, Barrage: 21 };
+  const UCount = 22;
+  const upgradeIds = ['t1_long', 't1_quick', 't1_heavy', 't1_grip', 't1_dash', 't1_steady', 't2_titan', 't2_overdrive', 't2_curve', 't4_shield', 't2_mirage',
+    't2_bullet', 't2_magnet', 't3_twin', 't3_cryo', 't3_blackhole', 't3_smash', 't3_guardian', 't3_shrink', 't4_snare', 't4_secondwind', 't4_barrage'];
 
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const pnum = (u, key, def) => { const v = u.params ? u.params[key] : undefined; return (v === undefined || v === null || typeof v === 'object') ? def : v; };
@@ -24,9 +24,9 @@
 
   // ---------------------------------------------------------------- catalog (mirrors catalog.h::loadCatalog)
   function buildCatalog(raw) {
-    const c = { pointsToWin: 21, matchPointAt: 20, winByTwo: false, pointOptions: [11, 21, 31], econ: {}, coins: {}, tiers: [], up: new Array(UCount), rarities: [], cats: [], cos: [], balls: [], ballGroups: [], cosIndex: {} };
+    const c = { pointsToWin: 21, matchPointAt: 20, pointOptions: [11, 21, 31], econ: {}, coins: {}, tiers: [], up: new Array(UCount), rarities: [], cats: [], cos: [], balls: [], ballGroups: [], cosIndex: {} };
     const m = raw.match || {};
-    c.pointsToWin = m.pointsToWin || 21; c.winByTwo = !!m.winByTwo; c.matchPointAt = m.matchPointBannerAt != null ? m.matchPointBannerAt : c.pointsToWin - 1;
+    c.pointsToWin = m.pointsToWin || 21; c.matchPointAt = m.matchPointBannerAt != null ? m.matchPointBannerAt : c.pointsToWin - 1;
     if (Array.isArray(m.pointsToWinOptions)) c.pointOptions = m.pointsToWinOptions.map((v) => Math.max(1, v || 21));
     const e = raw.upgradeEconomy || {}; const E = c.econ;
     E.earn = e.earnPerPointScored != null ? e.earnPerPointScored : 1;
@@ -49,17 +49,18 @@
       for (const it of (t.items || [])) {
         const id = it.id; const k = upgradeIds.indexOf(id); if (k < 0) continue;
         const u = { kind: k, id, name: it.name || id, icon: it.icon || 'target', type: it.type || 'passive', key: it.key || '', slot: it.slot || '', effect: it.effect || '', tier: td.tier, cost: td.cost, maxStacks: Math.max(1, it.maxStacks || 1), color: td.color, active: it.type === 'active', params: it.params || {} };
-        if (u.tier === 2 && u.active && !u.slot) u.slot = 'mod';
-        if (u.tier === 3) { u.maxStacks = 1; if (u.active) u.slot = 'ultimate'; }
-        if (u.tier === 4) { u.slot = 'legendary'; u.maxStacks = 1; }
+        // tiers 3 and 4 are single-stack; each tier allows ONE active ability (see Game.activeIn); passives never take that slot
+        if (u.tier >= 3) u.maxStacks = 1;
+        u.slot = u.active ? (u.tier === 2 ? 'mod' : u.tier === 3 ? 'ultimate' : u.tier === 4 ? 'legendary' : '') : '';
         c.up[k] = u; td.items.push(k); found++;
       }
       c.tiers.push(td);
     }
+    if (found !== UCount && JSON.stringify(raw).match(/"t1_tracer"|"t3_barrage"/)) throw new Error('catalog is from an older Neon Pong (it still lists Tracer or a Tier 3 Barrage)');
     if (found !== UCount) throw new Error('catalog.json must list all ' + UCount + ' upgrades (' + found + ' found)');
     const ce = raw.coinEconomy || {};
     const cea = ce.earn || {}, rb = cea.rallyBonus || {};
-    c.coins = { win: cea.win != null ? cea.win : 100, loss: cea.loss != null ? cea.loss : 50, perPoint: cea.perPointScored != null ? cea.perPointScored : 5, rallyMin: rb.minHits != null ? rb.minHits : 15, rallyCoins: rb.coins != null ? rb.coins : 10, rallyMax: rb.maxPerMatch != null ? rb.maxPerMatch : 5, cheat: (ce.cheatCode && ce.cheatCode.code) || 'NEONRICH' };
+    c.coins = { win: cea.win != null ? cea.win : 50, loss: cea.loss != null ? cea.loss : 10, perPoint: cea.perPointScored != null ? cea.perPointScored : 2, rallyMin: rb.minHits != null ? rb.minHits : 15, rallyCoins: rb.coins != null ? rb.coins : 10, rallyMax: rb.maxPerMatch != null ? rb.maxPerMatch : 5, cheat: (ce.cheatCode && ce.cheatCode.code) || 'NEONRICH' };
     for (const [id, v] of Object.entries(ce.rarities || {})) c.rarities.push({ id, label: v.label || id, price: v.price || 0, color: v.color || '#8b88b3', animated: !!v.animatedBorder });
     if (!c.rarities.length) c.rarities.push({ id: 'default', label: 'Default', price: 0, color: '#8b88b3', animated: false });
     for (const k of (raw.cosmeticCategories || [])) c.cats.push({ id: k.id, name: k.name, slot: k.slot, desc: k.desc });
@@ -83,15 +84,15 @@
     return {
       y: 300, v: 0, score: 0, up: 0, lvl: new Array(UCount).fill(0), mod: -1, ult: -1, legend: -1,
       dashT: 0, dashCd: 0, modCd: 0, ultCd: 0, legendCd: 0, bulletT: 0, magnetT: 0, cryoTele: 0, cryoT: 0, shrinkT: 0,
-      mirageArmed: false, mirageUsed: false, barrageArmed: false, smashArmed: false, snareArmed: false, secondWindArmed: false, shield: false, ready: false,
+      mirageArmed: false, mirageUsed: false, barrageArmed: false, smashArmed: false, snareArmed: false, secondWindArmed: false, secondWindUsed: false, shield: false, ready: false,
       barrageAt: 0, shieldAt: 0, twinY: 300, droneY: 300, handicap: 1,
       seenDash: 0, seenMod: 0, seenUlt: 0, seenLegend: 0, cursor: 0, in: newInput(),
       longest: 0, bought: 0, ults: 0, shieldsBroken: 0, longRallies: 0, fastest: 0,
     };
   }
-  function newBall() { return { x: 500, y: 300, vx: 0, vy: 0, curve: 0, normal: 0, decoyEnd: 0, active: false, decoy: false, smash: false, owner: -1, bounces: 0, held: false, heldBy: -1, holdT: 0 }; }
+  function newBall() { return { x: 500, y: 300, vx: 0, vy: 0, curve: 0, normal: 0, decoyEnd: 0, catchSpeed: 0, active: false, decoy: false, smash: false, owner: -1, bounces: 0, held: false, heldBy: -1, holdT: 0 }; }
 
-  function defaultRules(cat) { return { points: cat.pointsToWin, winBy2: cat.winByTwo, upgrades: true, resetUpOnConcede: cat.econ.resetOnConcede, underdogComeback: true, underdogDiscount: true, breakTimerOn: true, breakTimerSec: Math.round(cat.econ.breakTimer) }; }
+  function defaultRules(cat) { return { points: cat.pointsToWin, upgrades: true, resetUpOnConcede: cat.econ.resetOnConcede, underdogComeback: true, underdogDiscount: true, breakTimerOn: true, breakTimerSec: Math.round(cat.econ.breakTimer) }; }
 
   // ---------------------------------------------------------------- Game (mirrors game.h::Game)
   class Game {
@@ -101,6 +102,7 @@
       this.hole = { on: false, x: 0, y: 0, t: 0, owner: -1 };
       this.ev = { hit: 0, wall: 0, point: 0, buy: 0, ult: 0, shieldHit: 0, serve: 0, arm: 0, hitter: -1, scorer: -1, buyer: -1, ultBy: -1, dice: 1 };
       this.rally = 0; this.total = 0; this.winner = -1; this.token = 1; this.rng = 0x9e3779b9;
+      this.matchAcc = 0; this.matchMs = 0;  // elapsed match time: runs while unpaused, stops on the deciding point
     }
     E() { return this.cat.econ; }
     U_(k) { return this.cat.up[k]; }
@@ -119,20 +121,28 @@
     trailing(i) { return this.p[1 - i].score - this.p[i].score; }
     underdog(i) { return this.rules.underdogDiscount && this.trailing(i) >= this.E().discountTrail; }
     cost(i, k) { const u = this.U_(k), E = this.E(); let c = u.cost; if (this.underdog(i) && E.discountTiers.includes(u.tier)) c = Math.max(E.minCost, c - E.discount); return c; }
-    holder(i, slot, except) { for (let k = 0; k < UCount; k++) if (k !== except && this.p[i].lvl[k] && this.U_(k).slot === slot && (slot === 'ultimate' || slot === 'legendary' || this.U_(k).active)) return k; return -1; }
+    // the one-active-ability-per-tier rule: the owned ACTIVE upgrade in this tier (other than except), or -1. Passives never count.
+    activeIn(i, tier, except) { for (let k = 0; k < UCount; k++) if (k !== except && this.p[i].lvl[k] && this.U_(k).tier === tier && this.U_(k).active) return k; return -1; }
+    loadoutValid(i) {
+      const q = this.p[i], actives = [0, 0, 0, 0, 0];
+      for (let k = 0; k < UCount; k++) { const n = q.lvl[k]; if (!n) continue; const u = this.U_(k); if (n > u.maxStacks || (u.active && ++actives[u.tier] > 1)) return false; }
+      const slot = (s, tier) => s === -1 || (s >= 0 && s < UCount && q.lvl[s] > 0 && this.U_(s).active && this.U_(s).tier === tier);
+      return slot(q.mod, 2) && slot(q.ult, 3) && slot(q.legend, 4);
+    }
     maxed(i, k) { return this.p[i].lvl[k] >= this.U_(k).maxStacks; }
-    matchPoint(i) { const s = this.p[i].score + 1; return s >= this.rules.points && (!this.rules.winBy2 || s - this.p[1 - i].score >= 2); }
+    matchPoint(i) { return this.p[i].score + 1 >= this.rules.points; }
     anyMatchPoint() { return this.phase !== 'Finished' && this.winner < 0 && (this.matchPoint(0) || this.matchPoint(1)); }
-    decided() { for (let i = 0; i < 2; i++) if (this.p[i].score >= this.rules.points && (!this.rules.winBy2 || this.p[i].score - this.p[1 - i].score >= 2)) return true; return false; }
+    decided() { for (let i = 0; i < 2; i++) if (this.p[i].score >= this.rules.points) return true; return false; }
     ready01(i, k) {
       const q = this.p[i], u = this.U_(k);
       switch (k) {
         case U.Dash: { const cd = pat(u, 'cooldownSec', q.lvl[U.Dash] - 1, 4); return q.dashCd <= 0 ? 1 : 1 - q.dashCd / cd; }
         case U.Mirage: return q.mirageUsed ? 0 : 1;
-        case U.Bullet: case U.Magnet: { const cd = pnum(u, 'cooldownSec', 15); return q.modCd <= 0 ? 1 : 1 - q.modCd / cd; }
+        case U.Bullet: case U.Magnet: { const cd = pnum(u, 'cooldownSec', 30); return q.modCd <= 0 ? 1 : 1 - q.modCd / cd; }
         case U.Barrage: { const cp = pnum(u, 'cooldownPoints', 3); const left = q.barrageAt - this.total; return left <= 0 ? 1 : 1 - left / cp; }
-        case U.Cryo: case U.BlackHole: case U.Smash: case U.Shrink: { const cd = pnum(u, 'cooldownSec', 25); return q.ultCd <= 0 ? 1 : 1 - q.ultCd / cd; }
-        case U.Snare: case U.SecondWind: { const cd = pnum(u, 'cooldownSec', 20); return q.legendCd <= 0 ? 1 : 1 - q.legendCd / cd; }
+        case U.Cryo: case U.BlackHole: case U.Smash: case U.Shrink: { const cd = pnum(u, 'cooldownSec', 30); return q.ultCd <= 0 ? 1 : 1 - q.ultCd / cd; }
+        case U.Snare: { const cd = pnum(u, 'cooldownSec', 30); return q.legendCd <= 0 ? 1 : 1 - q.legendCd / cd; }
+        case U.SecondWind: return q.secondWindUsed ? 0 : 1;  // one use per round; refreshes when a point is awarded
         default: return 1;
       }
     }
@@ -142,7 +152,7 @@
       const keep = [this.p[0].handicap, this.p[1].handicap];
       this.cat = cat; this.rules = rules; this.p = [newPlayer(), newPlayer()]; this.p[0].handicap = keep[0]; this.p[1].handicap = keep[1];
       this.balls = Array.from({ length: 6 }, newBall);
-      this.hole = { on: false, x: 0, y: 0, t: 0, owner: -1 }; this.rally = 0; this.total = 0; this.winner = -1; this.paused = false; this.token++;
+      this.hole = { on: false, x: 0, y: 0, t: 0, owner: -1 }; this.rally = 0; this.total = 0; this.winner = -1; this.paused = false; this.matchAcc = 0; this.matchMs = 0; this.token++;
       this.rng = (this.rng ^ ((rules.points * 7919 + 17) >>> 0)) >>> 0;
       this.serveBall(1);
     }
@@ -167,42 +177,50 @@
       if (this.p[i].up < this.cost(i, k)) return 'NOT ENOUGH UP';
       return '';
     }
-    buy(i, k) {
-      if (!this.canBuy(i, k)) return false;
+    // gives the upgrade with no cost/phase checks; an active replaces whichever active the player holds in that tier
+    equip(i, k) {
       const q = this.p[i], u = this.U_(k);
-      q.up -= this.cost(i, k);
-      let old = -1;
-      if (u.slot === 'mod' && u.active) { old = this.holder(i, 'mod', k); if (old >= 0) q.lvl[old] = 0; q.mod = k; q.mirageArmed = false; q.bulletT = q.magnetT = 0; }
-      if (u.tier === 3 && u.active) { old = this.holder(i, 'ultimate', k); if (old >= 0) q.lvl[old] = 0; q.ult = k; q.barrageArmed = q.smashArmed = false; q.ultCd = 0; q.barrageAt = this.total; }
-      if (u.tier === 4) { old = this.holder(i, 'legendary', k); if (old >= 0) q.lvl[old] = 0; q.legend = k; q.snareArmed = q.secondWindArmed = false; q.legendCd = 0; }
+      if (q.lvl[k] >= u.maxStacks) return false;
+      if (u.active) {
+        const old = this.activeIn(i, u.tier, k); if (old >= 0) q.lvl[old] = 0;
+        if (u.tier === 2) { q.mod = k; q.mirageArmed = false; q.bulletT = q.magnetT = 0; }
+        else if (u.tier === 3) { q.ult = k; q.smashArmed = false; q.ultCd = 0; }
+        else if (u.tier === 4) { q.legend = k; q.snareArmed = q.secondWindArmed = q.barrageArmed = q.secondWindUsed = false; q.legendCd = 0; q.barrageAt = this.total; }
+      }
       q.lvl[k]++;
       if (k === U.Shield) q.shield = true;
       if (k === U.Twin) q.twinY = CH - q.y;
       if (k === U.Guardian) q.droneY = CH / 2;
-      q.bought++; this.ev.buy++; this.ev.buyer = i;
       return true;
     }
-    replaces(i, k) { const u = this.U_(k); if (u.slot === 'mod' && u.active) return this.holder(i, 'mod', k); if (u.tier === 3 && u.active) return this.holder(i, 'ultimate', k); if (u.tier === 4) return this.holder(i, 'legendary', k); return -1; }
+    buy(i, k) {
+      if (!this.canBuy(i, k)) return false;
+      this.p[i].up -= this.cost(i, k);
+      if (!this.equip(i, k)) return false;
+      this.p[i].bought++; this.ev.buy++; this.ev.buyer = i;
+      return true;
+    }
+    replaces(i, k) { const u = this.U_(k); return u.active ? this.activeIn(i, u.tier, k) : -1; }
     coins(i) { const k = this.cat.coins; const c = {}; c.won = this.winner === i; c.base = this.winner < 0 ? 0 : (c.won ? k.win : k.loss); c.points = this.p[i].score * k.perPoint; c.rally = Math.min(this.p[i].longRallies, k.rallyMax) * k.rallyCoins; c.total = c.base + c.points + c.rally; return c; }
 
     useDash(i) { const q = this.p[i]; if (!q.lvl[U.Dash] || q.dashCd > 0) return; q.dashT = pnum(this.U_(U.Dash), 'burstSec', 0.2); q.dashCd = pat(this.U_(U.Dash), 'cooldownSec', q.lvl[U.Dash] - 1, 4); }
     useMod(i) {
       const q = this.p[i]; if (q.mod < 0 || !q.lvl[q.mod]) return; const u = this.U_(q.mod);
       if (q.mod === U.Mirage) { if (!q.mirageUsed && !q.mirageArmed) { q.mirageArmed = true; this.ev.arm++; } }
-      else if (q.mod === U.Bullet) { if (q.modCd <= 0) { q.bulletT = pnum(u, 'durationSec', 1.2); q.modCd = pnum(u, 'cooldownSec', 15); this.ev.arm++; } }
-      else if (q.mod === U.Magnet) { if (q.modCd <= 0) { q.magnetT = pnum(u, 'durationSec', 1.5); q.modCd = pnum(u, 'cooldownSec', 15); this.ev.arm++; } }
+      else if (q.mod === U.Bullet) { if (q.modCd <= 0) { q.bulletT = pnum(u, 'durationSec', 1.2); q.modCd = pnum(u, 'cooldownSec', 30); this.ev.arm++; } }
+      else if (q.mod === U.Magnet) { if (q.modCd <= 0) { q.magnetT = pnum(u, 'durationSec', 1.5); q.modCd = pnum(u, 'cooldownSec', 30); this.ev.arm++; } }
     }
     useLegend(i) {
       const q = this.p[i]; if (q.legend < 0 || !q.lvl[q.legend]) return;
       if (q.legend === U.Snare) { if (!q.snareArmed && q.legendCd <= 0) { q.snareArmed = true; this.ev.arm++; } }
-      else if (q.legend === U.SecondWind) { if (!q.secondWindArmed && q.legendCd <= 0) { q.secondWindArmed = true; this.ev.arm++; } }
+      else if (q.legend === U.SecondWind) { if (!q.secondWindArmed && !q.secondWindUsed) { q.secondWindArmed = true; this.ev.arm++; } }
+      else if (q.legend === U.Barrage) { if (!q.barrageArmed && q.barrageAt <= this.total) { q.barrageArmed = true; this.ev.arm++; } }
     }
     fired(i) { this.p[i].ults++; this.ev.ult++; this.ev.ultBy = i; }
     useUlt(i) {
       const q = this.p[i]; if (q.ult < 0 || !q.lvl[q.ult]) return; const u = this.U_(q.ult), o = 1 - i;
-      if (q.ult === U.Barrage) { if (!q.barrageArmed && q.barrageAt <= this.total) { q.barrageArmed = true; this.ev.arm++; } }
-      else if (q.ult === U.Smash) { if (!q.smashArmed && q.ultCd <= 0) { q.smashArmed = true; this.ev.arm++; } }
-      else if (q.ult === U.Cryo) { if (q.ultCd <= 0) { this.p[o].cryoTele = pnum(u, 'telegraphSec', 0.3); q.ultCd = pnum(u, 'cooldownSec', 25); this.fired(i); } }
+      if (q.ult === U.Smash) { if (!q.smashArmed && q.ultCd <= 0) { q.smashArmed = true; this.ev.arm++; } }
+      else if (q.ult === U.Cryo) { if (q.ultCd <= 0) { this.p[o].cryoTele = pnum(u, 'telegraphSec', 0.3); q.ultCd = pnum(u, 'cooldownSec', 30); this.fired(i); } }
       else if (q.ult === U.Shrink) { if (q.ultCd <= 0) { this.p[o].shrinkT = pnum(u, 'durationSec', 10); q.ultCd = pnum(u, 'cooldownSec', 30); this.fired(i); } }
       else if (q.ult === U.BlackHole) {
         if (q.ultCd <= 0) {
@@ -244,6 +262,7 @@
       const q = this.p[i], E = this.E(), dirS = i === 0 ? 1 : -1;
       if (main && q.snareArmed) {
         q.snareArmed = false; b.held = true; b.heldBy = i; b.holdT = pnum(this.U_(U.Snare), 'holdSec', 1.2);
+        b.catchSpeed = Math.hypot(b.vx, b.vy);  // the launch speed is a multiple of the ball's speed at the moment it was caught
         b.vx = 0; b.vy = 0; b.owner = i; b.curve = 0; b.smash = false; b.bounces = 0;
         this.rally++; this.ev.hit++; this.ev.hitter = i; this.ev.dice = 1 + (Math.floor(this.rnd() * 6) % 6);
         return;
@@ -263,7 +282,7 @@
       if (!main) return;
       if (q.smashArmed) {
         b.normal = s; this.setSpeed(b, Math.min(s * pnum(this.U_(U.Smash), 'speedMult', 1.8), this.ballCap(true))); b.smash = true;
-        q.smashArmed = false; q.ultCd = pnum(this.U_(U.Smash), 'cooldownSec', 20); this.fired(i);
+        q.smashArmed = false; q.ultCd = pnum(this.U_(U.Smash), 'cooldownSec', 30); this.fired(i);
         q.fastest = Math.max(q.fastest, Math.hypot(b.vx, b.vy) / E.baseBall);
       }
       if (q.mirageArmed) {
@@ -277,8 +296,10 @@
         q.mirageArmed = false; q.mirageUsed = true;
       }
       if (q.barrageArmed) {
-        const spread = pnum(this.U_(U.Barrage), 'spreadDeg', 15) * DEG, n = pnum(this.U_(U.Barrage), 'balls', 3);
-        for (let k = 1; k < n; k++) { const d = this.spawn(); if (d) { Object.assign(d, b); d.curve = 0; this.rotateVel(d, (k % 2 ? 1 : -1) * spread * Math.floor((k + 1) / 2)); this.keepHorizontal(d, 0.3); } }
+        const spread = pnum(this.U_(U.Barrage), 'spreadDeg', 15) * DEG, want = Math.max(2, pnum(this.U_(U.Barrage), 'balls', 2));
+        let have = 0; for (const x of this.balls) if (x.active && !x.decoy) have++;
+        // top the rally up to exactly `want` balls (the ball just hit counts as one; Mirage decoys never count)
+        for (let k = 1; have < want; k++) { const d = this.spawn(); if (!d) break; Object.assign(d, b); d.curve = 0; this.rotateVel(d, (k % 2 ? 1 : -1) * spread * Math.floor((k + 1) / 2)); this.keepHorizontal(d, 0.3); have++; }
         q.barrageArmed = false; q.barrageAt = this.total + pnum(this.U_(U.Barrage), 'cooldownPoints', 3); this.fired(i);
       }
     }
@@ -288,6 +309,7 @@
       this.hole.on = false;
       const P = this.p[s], Q = this.p[c];
       P.score++; this.total++;
+      for (const q of this.p) q.secondWindUsed = false;  // Second Wind is one use per round: a point being awarded refreshes it
       P.longest = Math.max(P.longest, this.rally);
       if (this.rally >= this.cat.coins.rallyMin) P.longRallies++;
       if (this.rules.upgrades) {
@@ -307,7 +329,7 @@
         const q = this.p[i];
         const dec = (k) => { q[k] = Math.max(0, q[k] - dt); };
         dec('dashT'); dec('dashCd'); dec('modCd'); dec('ultCd'); dec('legendCd'); dec('bulletT'); dec('magnetT'); dec('shrinkT'); dec('cryoT');
-        if (q.cryoTele > 0) { q.cryoTele -= dt; if (q.cryoTele <= 0) { q.cryoTele = 0; q.cryoT = pnum(this.U_(U.Cryo), 'durationSec', 2); } }
+        if (q.cryoTele > 0) { q.cryoTele -= dt; if (q.cryoTele <= 0) { q.cryoTele = 0; q.cryoT = pnum(this.U_(U.Cryo), 'durationSec', 3); } }
       }
       if (this.hole.on) { this.hole.t -= dt; if (this.hole.t <= 0) this.hole.on = false; }
     }
@@ -321,6 +343,7 @@
     step(dt) {
       if (this.paused || this.phase === 'Idle' || this.phase === 'Finished') { for (let i = 0; i < 2; i++) { const q = this.p[i]; q.seenDash = q.in.dash; q.seenMod = q.in.mod; q.seenUlt = q.in.ult; q.seenLegend = q.in.legend; } return; }
       this.phaseT += dt;
+      if (this.winner < 0) { this.matchAcc += dt; this.matchMs = Math.floor(this.matchAcc * 1000); }
       if (this.phase === 'Goal') { if (this.phaseT >= this.E().goalBeat) this.afterGoal(); return; }
       if (this.phase === 'Break') { this.breakT -= dt; for (let i = 0; i < 2; i++) this.handleInput(i); if (this.rules.breakTimerOn && this.breakT <= 0) this.endBreak(); return; }
       this.tickTimers(dt);
@@ -334,10 +357,11 @@
           b.x = (hb === 0 ? FaceL : FaceR) + dirS * (BallR + 6); b.y = q.y; b.holdT -= dt;
           if (b.holdT <= 0) {
             const k = clamp(q.v / Math.max(1, this.speed(hb)), -1, 1), ang = k * this.maxAngle(hb);
-            const s = Math.min(this.ballCap(), E.baseBall * pnum(this.U_(U.Snare), 'releaseSpeedMult', 1.15));
+            // the launch travels at releaseBallSpeedMult (2x) the speed the ball had when it was caught
+            const s = Math.min(this.ballCap(true), (b.catchSpeed > 1 ? b.catchSpeed : E.baseBall) * pnum(this.U_(U.Snare), 'releaseBallSpeedMult', 2));
             b.vx = dirS * s * Math.cos(ang); b.vy = s * Math.sin(ang);
             b.held = false; b.heldBy = -1; b.owner = hb;
-            q.legendCd = pnum(this.U_(U.Snare), 'cooldownSec', 20); this.fired(hb);
+            q.legendCd = pnum(this.U_(U.Snare), 'cooldownSec', 30); this.fired(hb);
           }
           continue;
         }
@@ -372,11 +396,11 @@
           if (this.p[i].shield && (i === 0 ? b.x < back : b.x > back)) { b.x = back; b.vx = -b.vx; this.p[i].shield = false; this.p[i].shieldAt = this.total + pnum(this.U_(U.Shield), 'rechargePoints', 3); this.p[1 - i].shieldsBroken++; this.ev.shieldHit++; this.ev.wall++; }
         }
         if (b.x < 0) {
-          if (this.p[0].secondWindArmed) { this.p[0].secondWindArmed = false; this.p[0].legendCd = pnum(this.U_(U.SecondWind), 'cooldownSec', 30); this.fired(0); this.serveBall(1); return; }
+          if (this.p[0].secondWindArmed) { this.p[0].secondWindArmed = false; this.p[0].secondWindUsed = true; this.fired(0); this.serveBall(1); return; }
           this.point(1); return;
         }
         if (b.x > CW) {
-          if (this.p[1].secondWindArmed) { this.p[1].secondWindArmed = false; this.p[1].legendCd = pnum(this.U_(U.SecondWind), 'cooldownSec', 30); this.fired(1); this.serveBall(0); return; }
+          if (this.p[1].secondWindArmed) { this.p[1].secondWindArmed = false; this.p[1].secondWindUsed = true; this.fired(1); this.serveBall(0); return; }
           this.point(0); return;
         }
       }
@@ -425,11 +449,11 @@
     if (q.mod === U.Bullet && threat && best < 0.7 && Math.hypot(threat.vx, threat.vy) > g.E().baseBall * 1.4 && q.modCd <= 0) inp.mod++;
     if (q.mod === U.Magnet && threat && best < 0.8 && gap > half && q.modCd <= 0) inp.mod++;
     let away = false; for (const b of g.balls) if (b.active && !b.decoy && (i === 0 ? b.vx > 0 : b.vx < 0)) away = true;
-    if (q.ult === U.Barrage && !q.barrageArmed && q.barrageAt <= g.total) inp.ult++;
     if (q.ult === U.Smash && !q.smashArmed && q.ultCd <= 0) inp.ult++;
     if ((q.ult === U.Cryo || q.ult === U.Shrink || q.ult === U.BlackHole) && away && q.ultCd <= 0 && g.serve <= 0) inp.ult++;
     if (q.legend === U.Snare && threat && best < 0.5 && !q.snareArmed && q.legendCd <= 0) inp.legend++;
-    if (q.legend === U.SecondWind && !q.secondWindArmed && q.legendCd <= 0) inp.legend++;
+    if (q.legend === U.SecondWind && !q.secondWindArmed && !q.secondWindUsed) inp.legend++;
+    if (q.legend === U.Barrage && !q.barrageArmed && q.barrageAt <= g.total) inp.legend++;
   }
   const Strat = { Random: 'Random', SaveMod: 'SaveMod', SaveUlt: 'SaveUlt', Cheap: 'Cheap' };
   function cpuShop(g, i, strat, c) {
@@ -437,7 +461,7 @@
       const ok = [[], [], [], [], []];
       for (let k = 0; k < UCount; k++) if (g.canBuy(i, k)) ok[g.U_(k).tier].push(k);
       const pick = (v) => { const k = v[Math.floor(cpuRnd(c) * v.length) % v.length]; return g.buy(i, k); };
-      const anyUlt = g.p[i].ult >= 0, anyLegend = g.p[i].legend >= 0;
+      const anyUlt = g.p[i].ult >= 0;
       if (strat === Strat.SaveUlt && !anyUlt) { if (ok[3].length) { pick(ok[3]); continue; } if (g.p[i].up < 3) return; }
       if (strat === Strat.SaveMod || (strat === Strat.SaveUlt && anyUlt)) {
         const mods = ok[2].filter((k) => !(g.U_(k).active && g.p[i].mod >= 0));
@@ -446,7 +470,8 @@
         if (modsLeft && g.p[i].up < 2) return;
       }
       const all = [];
-      for (let t = 1; t <= 4; t++) for (const k of ok[t]) if (!(g.U_(k).tier === 3 && anyUlt) && !(g.U_(k).tier === 4 && anyLegend) && !(g.U_(k).active && g.U_(k).tier === 2 && g.p[i].mod >= 0)) all.push(k);
+      // the CPU never buys a second active in a tier that already has one (it would just replace it)
+      for (let t = 1; t <= 4; t++) for (const k of ok[t]) if (g.replaces(i, k) < 0) all.push(k);
       if (strat === Strat.Cheap && ok[1].length) { pick(ok[1]); continue; }
       if (!all.length || (strat === Strat.Random && cpuRnd(c) < 0.25)) return;
       pick(all);
